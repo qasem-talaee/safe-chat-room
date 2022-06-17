@@ -1,0 +1,47 @@
+
+body {
+    font-family: 'Vazir';
+    background-color: #060E1E;
+    font-size: 0.8rem;
+}
+
+.form-control {
+  font-size: 0.8rem;
+}
+
+.btn {
+  font-size: 0.8rem;
+}
+
+.card {
+  background-color: #0F1B3C;
+}
+
+.navbar {
+  background-color: #0F1B3C;
+}
+
+footer {
+  margin-top: 200px;
+  background-color: #0F1B3C;
+  clear: both;
+  position: relative;
+}
+
+td, .table {
+  color: white !important;
+}
+
+.hove-status:hover {
+  background-color: gray;
+  color: black;
+  border-radius: 10px;
+}
+
+hr {
+  margin-top: -0.8rem;
+}
+
+.chatdiv {
+  width: 80%;
+}
