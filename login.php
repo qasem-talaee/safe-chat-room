@@ -13,11 +13,13 @@ if(isset($_POST['login'])){
     $pass = test_input($_POST['passlogin']);
     $cap = test_input($_POST['caplogin']);
     if($cap == $_SESSION['cap-login']){
-        echo('gcdfuilalcghuikcbgasuicgcigfl');
         $pass = hash_pass($pass);
-        $get = "select * from user where email='$email' and pass='$pass'";
-        $run = mysqli_query($con, $get);
-        if(mysqli_num_rows($run) != 0){
+
+        $sql = "select count(*) from user where email=? and pass=?";
+        $result = $pdo->prepare($sql);
+        $result->execute([$email, $pass]); 
+
+        if($result -> fetchColumn() != 0){
             $_SESSION['email'] = $email;
             header('Location: index.php');
         }else{
@@ -42,12 +44,16 @@ if(isset($_POST['register'])){
         }else{
             if($pass == $pass_again){
                 $pass = hash_pass($pass);
-                $get = "select * from user where email='$email'";
-                $run = mysqli_query($con, $get);
-                if(mysqli_num_rows($run) == 0){
-                    $insert = "insert into user (id,name,email,pass,status) values (NULL,'$name','$email','$pass','user')";
-                    $run = mysqli_query($con, $insert);
-                    if($run){
+
+                $sql = "select count(*) from user where email=?";
+                $result = $pdo->prepare($sql);
+                $result->execute([$email]); 
+
+                if($result -> fetchColumn() == 0){
+                    $sql = "insert into user (id,name,email,pass,status) values (NULL,?,?,?,'user')";
+                    $result = $pdo->prepare($sql);
+
+                    if($result->execute([$name, $email, $pass])){
                         $flag_register = 2;
                     }else{
                         $flag_register = 1;
@@ -86,11 +92,11 @@ if(isset($_POST['forget'])){
             $gen_pass = implode($pass);
             $gen_pass_hash = hash_pass($gen_pass);
             $update = "update user set pass='$gen_pass_hash' where id='$user_id'";
-            #$run = mysqli_query($con, $update);
+            $run = mysqli_query($con, $update);
             #send email
             $message = "<p>This email send from Safe Chat Room web site.<br>Your password was changed successfully.<br>Your new password is : <h3><b>$gen_pass</b></h3><br>Please login.Thank you.</p>";
             $from = $reply_to = 'no-reply@gmail.com';
-            #send_email($email, $user_name, 'Change Password', $message, $from, 'Safe Chat Room', $reply_to, 'no-reply');
+            send_email($email, $user_name, 'Change Password', $message, $from, 'Safe Chat Room', $reply_to, 'no-reply');
         }
     }
 }
@@ -103,9 +109,6 @@ if(isset($_POST['forget'])){
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <link href="css/bootstrap.min.css" rel="stylesheet" />
         <link href="css/mystyle.css" rel="stylesheet" />
-        <link rel="preconnect" href="//fdn.fontcdn.ir">
-        <link rel="preconnect" href="//v1.fontapi.ir">
-        <link href="https://v1.fontapi.ir/css/Vazir" rel="stylesheet">
         <script src="js/bootstrap.bundle.min.js"></script>
     </head>
     <body class="d-flex flex-column min-vh-100">

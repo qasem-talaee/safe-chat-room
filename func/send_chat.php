@@ -12,16 +12,24 @@ include('test_input.php');
 include('hash_pass.php');
 include('encrypt.php');
 $email = $_SESSION['email'];
-$get = "select * from user where email='$email'";
-$run = mysqli_query($con, $get);
-$row = mysqli_fetch_array($run);
+$sql = "select * from user where email=:email";
+$run = $pdo -> prepare($sql);
+$run -> bindValue(":email", $email);
+$run -> execute();
+$row = $run -> fetch();
 $user_id = $row['id'];
 $id = test_input($_GET['id']);
-$get_exist = "select * from room where id='$id'";
-$run_exist = mysqli_query($con, $get_exist);
-if(mysqli_num_rows($run_exist) != 0){
+$sql = "select count(*) from room where id=:id";
+$run_exist = $pdo -> prepare($sql);
+$run_exist -> bindValue(":id", $id);
+$run_exist -> execute();
+if($run_exist -> fetchColumn() != 0){
     $hash_key = hash_pass($_SESSION['key']);
-    $row_key = mysqli_fetch_array($run_exist);
+    $sql = "select * from room where id=:id";
+    $run_exist = $pdo -> prepare($sql);
+    $run_exist -> bindValue(":id", $id);
+    $run_exist -> execute();
+    $row_key = $run_exist -> fetch();
     $o_key = $row_key['seckey'];
     if($hash_key == $o_key){
         $key = $_SESSION['key'];
@@ -32,15 +40,19 @@ if(mysqli_num_rows($run_exist) != 0){
         }
         $per_page = 30;
         $per_page = $per_page * $page;
-        $get = "(select * from chat where room_id='$id' order by date desc limit $per_page) order by date";
-        $run = mysqli_query($con, $get);
+        $sql = "(select * from chat where room_id=:id order by date desc limit $per_page) order by date";
+        $run = $pdo -> prepare($sql);
+        $run -> bindValue(":id", $id);
+        $run -> execute();
         $out = array();
         $rows = array();
-        while($row = mysqli_fetch_assoc($run)){
+        while($row = $run -> fetch()){
             $user_id = $row['user_id'];
-            $get_user_name = "select * from user where id='$user_id'";
-            $run_user_name = mysqli_query($con, $get_user_name);
-            $row_user_name = mysqli_fetch_array($run_user_name);
+            $sql = "select * from user where id=:id";
+            $run_user_name = $pdo -> prepare($sql);
+            $run_user_name -> bindValue(":id", $user_id);
+            $run_user_name -> execute();
+            $row_user_name = $run_user_name -> fetch();
             $user_name = $row_user_name['name'];
             array_push($rows, $row['user_id']);
             array_push($rows, $user_name);

@@ -22,16 +22,20 @@ if(isset($_POST['submit'])){
             header('Location: ../index.php?e=key');
         }else{
             $key = hash_pass($key);
-            $get = "select * from room where name='$name'";
-            $run = mysqli_query($con, $get);
-            if(mysqli_num_rows($run) == 0){
-                $get_id = "select * from user where email='$email'";
-                $run_id = mysqli_query($con, $get_id);
-                $row_id = mysqli_fetch_array($run_id);
+            $sql = "select * from room where name=:name";
+            $run = $pdo -> prepare($sql);
+            $run -> bindValue(":name", $name);
+            $run -> execute();
+            if($run -> fetchColumn() == 0){
+                $sql = "select * from user where email=:email";
+                $run_id = $pdo -> prepare($sql);
+                $run_id -> bindValue(":email", $email);
+                $run_id -> execute();
+                $row_id = $run_id -> fetch();
                 $id = $row_id['id'];
-                $insert = "insert into room (id,name,creator,seckey) values (NULL,'$name','$id','$key')";
-                $run_insert = mysqli_query($con, $insert);
-                if($run){
+                $sql = "insert into room (id,name,creator,seckey) values (NULL,?,?,?)";
+                $run = $pdo -> prepare($sql);
+                if($run -> execute([$name, $id, $key])){
                     header('Location: ../index.php');
                 }else{
                     header('Location: ../index.php?e=wrong-create');

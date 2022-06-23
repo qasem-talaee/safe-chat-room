@@ -11,22 +11,34 @@ include('../func/test_input.php');
 include('../func/hash_pass.php');
 include('../func/encrypt.php');
 $email = $_SESSION['email'];
-$get = "select * from user where email='$email'";
-$run = mysqli_query($con, $get);
-$row = mysqli_fetch_array($run);
+$sql = "select * from user where email=:email";
+$run = $pdo -> prepare($sql);
+$run -> bindValue(":email",$email);
+$run -> execute();
+$row = $run -> fetch();
 $user_id = $row['id'];
 $id = test_input($_GET['id']);
-$get_exist = "select * from room where id='$id'";
-$run_exist = mysqli_query($con, $get_exist);
-if(mysqli_num_rows($run_exist) != 0){
+$sql = "select count(*) from room where id=:id";
+$run_exist = $pdo -> prepare($sql);
+$run_exist -> bindValue(":id", $id);
+$run_exist -> execute();
+if($run_exist -> fetchColumn() != 0){
     $hash_key = hash_pass($_SESSION['key']);
-    $row_key = mysqli_fetch_array($run_exist);
+    $sql = "select * from room where id=:id";
+    $run_exist = $pdo -> prepare($sql);
+    $run_exist -> bindValue(":id", $id);
+    $run_exist -> execute();
+    $row_key = $run_exist -> fetch();
     $o_key = $row_key['seckey'];
     if($hash_key == $o_key && $_GET['chat'] != ''){
         $chat = test_input($_GET['chat']);
         $chat = encrypt($chat, $_SESSION['key']);
-        $insert = "insert into chat (room_id,user_id,text,date) values ('$id','$user_id','$chat',NOW())";
-        $run = mysqli_query($con, $insert);
+        $sql = "insert into chat (room_id,user_id,text,date) values (:id,:user_id,:chat,NOW())";
+        $run = $pdo -> prepare($sql);
+        $run -> bindValue(":id", $id);
+        $run -> bindValue(":user_id", $user_id);
+        $run -> bindValue(":chat", $chat);
+        $run -> execute();
     }else{
         header('Location: index.php');
     }

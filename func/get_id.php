@@ -5,9 +5,10 @@ function get_id (){
         header('Location: login.php');
     }
     $email = $_SESSION['email'];
-    $get = "select * from user where email='$email'";
-    $run = mysqli_query($con, $get);
-    $row = mysqli_fetch_array($run);
+    $sql = "select * from user where email=?";
+    $result = $pdo -> prepare($sql);
+    $result -> execute([$email,]);
+    $row = $result -> fetch();
     $id = $row['id'];
     return $id;
 }

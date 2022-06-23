@@ -14,23 +14,31 @@ if(!isset($_GET['p']) || $_GET['p'] == ''){
 }
 if(isset($_GET['s']) && $_GET['s'] != ''){
     $search = test_input($_GET['s']);
-    $get_count = "select * from room where creator<>'$user_id' and name like '%$search%'";
-    $run_count = mysqli_query($con, $get_count);
-    $count_all = mysqli_num_rows($run_count);
+    $sql_count = "select count(*) from room where creator<>:id and name like :search";
+    $result_count = $pdo -> prepare($sql_count);
+    $result_count -> bindValue(':search', '%'.$search.'%');
+    $result_count -> bindValue(':id', $user_id);
+    $result_count -> execute();
+    $count_all = $result_count -> fetchColumn();
     $per_page = 20;
     $count_page = (int)($count_all / $per_page) + 1;
     $start = ($page - 1) * $per_page;
-    $get = "select * from room where creator<>'$user_id' and name like '%$search%' order by id desc limit $start,$per_page";
-    $run = mysqli_query($con, $get);
+    $sql = "select * from room where creator<>:id and name like :search order by id desc limit $start,$per_page";
+    $run = $pdo -> prepare($sql);
+    $run -> bindValue(':search', '%'.$search.'%');
+    $run -> bindValue(':id', $user_id);
+    $run -> execute();
 }else{
-    $get_count = "select * from room where creator<>'$user_id'";
-    $run_count = mysqli_query($con, $get_count);
-    $count_all = mysqli_num_rows($run_count);
+    $sql_count = "select count(*) from room where creator<>?";
+    $result_count = $pdo -> prepare($sql_count);
+    $result_count -> execute([$user_id]);
+    $count_all = $result_count -> fetchColumn();
     $per_page = 20;
     $count_page = (int)($count_all / $per_page) + 1;
     $start = ($page - 1) * $per_page;
-    $get = "select * from room where creator<>'$user_id' order by id desc limit $start,$per_page";
-    $run = mysqli_query($con, $get);
+    $sql = "select * from room where creator<>? order by id desc limit $start,$per_page";
+    $run = $pdo -> prepare($sql);
+    $run -> execute([$user_id]);
 }
 ?>
 <!DOCTYPE html>
@@ -41,9 +49,6 @@ if(isset($_GET['s']) && $_GET['s'] != ''){
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <link href="css/bootstrap.min.css" rel="stylesheet" />
         <link href="css/mystyle.css" rel="stylesheet" />
-        <link rel="preconnect" href="//fdn.fontcdn.ir">
-        <link rel="preconnect" href="//v1.fontapi.ir">
-        <link href="https://v1.fontapi.ir/css/Vazir" rel="stylesheet">
         <script src="js/bootstrap.bundle.min.js"></script>
         <script src="js/alert.js"></script>
         <script>
@@ -142,9 +147,10 @@ if(isset($_GET['s']) && $_GET['s'] != ''){
                                     <tbody>
                                 <?php
                                 $user_id = get_id();
-                                $get_my_room = "select * from room where creator='$user_id'";
-                                $run_my_room = mysqli_query($con, $get_my_room);
-                                while($row_my_room = mysqli_fetch_array($run_my_room)){
+                                $sql_my = "select * from room where creator=?";
+                                $result_my = $pdo -> prepare($sql_my);
+                                $result_my -> execute([$user_id]);
+                                while($row_my_room = $result_my -> fetch()){
                                     $my_room_id = $row_my_room['id'];
                                     $my_room_name = $row_my_room['name'];
                                     ?>
@@ -204,7 +210,7 @@ if(isset($_GET['s']) && $_GET['s'] != ''){
                                         </tr>
                                     </thead>
                                     <tbody>
-                        <?php   while($row = mysqli_fetch_array($run)){
+                        <?php   while($row = $run -> fetch()){
                                     $room_id = $row['id'];
                                     $room_name = $row['name'];
                                     ?>

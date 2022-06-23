@@ -12,11 +12,17 @@ include('func/get_id.php');
 include('includes/db.php');
 $id = test_input($_GET['id']);
 $user_id = get_id();
-$get_exist = "select * from room where id='$id'";
-$run_exist = mysqli_query($con, $get_exist);
-if(mysqli_num_rows($run_exist) != 0){
+$sql = "select count(*) from room where id=:id";
+$run_exist = $pdo -> prepare($sql);
+$run_exist -> bindValue(':id', $id);
+$run_exist -> execute();
+if($run_exist -> fetchColumn() != 0){
     $hash_key = hash_pass($_SESSION['key']);
-    $row_key = mysqli_fetch_array($run_exist);
+    $sql = "select * from room where id=:id";
+    $run_exist = $pdo -> prepare($sql);
+    $run_exist -> bindValue(':id', $id);
+    $run_exist -> execute();
+    $row_key = $run_exist -> fetch();
     $o_key = $row_key['seckey'];
     $room_name = $row_key['name'];
     if($hash_key == $o_key){
@@ -36,9 +42,6 @@ if(mysqli_num_rows($run_exist) != 0){
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <link href="css/bootstrap.min.css" rel="stylesheet" />
         <link href="css/mystyle.css" rel="stylesheet" />
-        <link rel="preconnect" href="//fdn.fontcdn.ir">
-        <link rel="preconnect" href="//v1.fontapi.ir">
-        <link href="https://v1.fontapi.ir/css/Vazir" rel="stylesheet">
         <script src="js/bootstrap.bundle.min.js"></script>
         <script>
             let page = 1;

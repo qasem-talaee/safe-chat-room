@@ -7,9 +7,12 @@ include('includes/db.php');
 include('func/hash_pass.php');
 include('func/test_input.php');
 $email = $_SESSION['email'];
-$get = "select * from user where email='$email'";
-$run = mysqli_query($con, $get);
-$row = mysqli_fetch_array($run);
+
+$sql = "select * from user where email=?";
+$result = $pdo -> prepare($sql);
+$result -> execute([$email,]);
+$row = $result -> fetch();
+
 $id = $row['id'];
 $name = $row['name'];
 $pass = $row['pass'];
@@ -25,9 +28,10 @@ if(isset($_POST['submit'])){
         $name = test_input($_POST['name']);
         $email = test_input($_POST['email']);
         if($_POST['old_pass'] == ''){
-            $update = "update user set name='$name', email='$email' where id=$id";
-            $run = mysqli_query($con, $update);
-            if($run){
+            $sql = "update user set name=?, email=? where id=?";
+            $result = $pdo -> prepare($sql);
+
+            if($result -> execute([$name, $email, $id])){
                 header('Location: index.php');
             }else{
                 $flag = 1;
@@ -42,9 +46,11 @@ if(isset($_POST['submit'])){
                 if(hash_pass($old_pass) == $pass){
                     if($new_pass == $new_pass_again){
                         $new_pass = hash_pass($new_pass);
-                        $update = "update user set name='$name',email='$email',pass='$new_pass' where id=$id";
-                        $run = mysqli_query($con, $update);
-                        if($run){
+                        
+                        $sql = "update user set name=?,email=?,pass=? where id=?";
+                        $result = $pdo -> prepare($sql);
+
+                        if($result -> execute([$name, $email, $new_pass, $id])){
                             header('Location: logout.php');
                         }else{
                             $flag = 1;
@@ -68,9 +74,6 @@ if(isset($_POST['submit'])){
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <link href="css/bootstrap.min.css" rel="stylesheet" />
         <link href="css/mystyle.css" rel="stylesheet" />
-        <link rel="preconnect" href="//fdn.fontcdn.ir">
-        <link rel="preconnect" href="//v1.fontapi.ir">
-        <link href="https://v1.fontapi.ir/css/Vazir" rel="stylesheet">
         <script src="js/bootstrap.bundle.min.js"></script>
     </head>
     <body class="d-flex flex-column min-vh-100">
